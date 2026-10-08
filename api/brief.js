@@ -1,6 +1,6 @@
 // GET  /api/brief  → latest brief (middleware has already checked the passphrase cookie)
 // POST /api/brief  → publish a brief; header x-ingest-secret must match INGEST_SECRET
-// Storage: a *private* Vercel Blob store connected to the project (sets BLOB_READ_WRITE_TOKEN).
+// Storage: a *private* Vercel Blob store connected to the project (OIDC + BLOB_STORE_ID, or BLOB_READ_WRITE_TOKEN).
 import { put, get } from '@vercel/blob';
 import { safeEqual } from '../lib/auth.js';
 
@@ -9,7 +9,8 @@ const LATEST = 'briefs/latest.json';
 
 export default async function handler(req, res) {
   res.setHeader('cache-control', 'no-store');
-  if (!process.env.BLOB_READ_WRITE_TOKEN) return res.status(500).json({ error: 'No Blob store connected. In Vercel: Storage → Create → Blob, connect it to this project, then redeploy.' });
+  // A connected store provides either BLOB_READ_WRITE_TOKEN (classic) or BLOB_STORE_ID + OIDC (current). The SDK picks whichever exists.
+  if (!process.env.BLOB_READ_WRITE_TOKEN && !process.env.BLOB_STORE_ID) return res.status(500).json({ error: 'No Blob store connected. In Vercel: Storage → Create → Blob, connect it to this project, then redeploy.' });
 
   if (req.method === 'POST') {
     if (!safeEqual(req.headers['x-ingest-secret'], process.env.INGEST_SECRET)) return res.status(403).send('forbidden');
