@@ -5,7 +5,9 @@
   "type": "module",
   "description": "Personal daily brief. Vercel: public/ + api/ + middleware.js. Fly: see deploy/.",
   "dependencies": {
-    "@vercel/blob": "^1.1.1"
+    "@vercel/blob": "^2.8.1"
   },
-  "engines": { "node": "22.x" }
+  "engines": {
+    "node": "22.x"
+  }
 }
