@@ -1,0 +1,30 @@
+{
+  "name": "brief-server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Backend for the daily brief: holds OAuth tokens server-side, runs the collect → synthesise pipeline, serves the latest Briefing JSON, gates write actions behind explicit approval.",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p .",
+    "start": "node dist/index.js",
+    "generate": "tsx src/cli.ts generate"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.60.0",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "hono": "^4.6.0",
+    "@hono/node-server": "^1.13.0",
+    "googleapis": "^144.0.0",
+    "@slack/web-api": "^7.5.0",
+    "octokit": "^4.0.0",
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.11.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shamal's Morning Brief</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one editorial reading column (~720px) under a full-bleed painted header; "Your day" splits into timeline + detail on wide screens. */
+:root {
+  --paper: #F5F1E8;
+  --ink: #1C1A16;
+  --muted: #6A665E;
+  --rule: #D9D3C6;
+  --card: #FAF7F0;
+  --yellow: #FFD41F;
+  --yellow-soft: #FFF3B0;
+  --yellow-ink: #6B5500;
+  --green: #2E7D4F;
+  --red: #B3372B;
+  --display: "Instrument Serif", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --body: "Hanken Grotesk", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --col: 720px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #161512; --ink: #F1EEE3; --muted: #A5A294; --rule: #302E28; --card: #1D1C18;
+    --yellow: #FFD84A; --yellow-soft: #3A3210; --yellow-ink: #FFE57A; --green: #6CC08F; --red: #E07A6E;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #141311; --ink: #F1EEE3; --muted: #A5A294; --rule: #2B2A24; --card: #1C1B17;
+  --yellow: #FFD84A; --yellow-soft: #3A3210; --yellow-ink: #FFE57A; --green: #6CC08F; --red: #E07A6E;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16.5px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--yellow); outline-offset: 3px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 400; margin: 0; text-wrap: balance; letter-spacing: -0.035em; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.wrap { width: 100%; max-width: var(--col); margin-inline: auto; padding-inline: 20px; }
+
+/* Top bar */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding-block: 18px 14px;
+  font-size: 13px; color: var(--muted);
+}
+.brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-size: 22px; color: var(--ink); }
+.brand .dot { width: 12px; height: 12px; border-radius: 1px; background: var(--yellow); display: inline-block; }
+.sample-badge {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--yellow-ink); background: var(--yellow-soft); border-radius: 2px; padding: 3px 8px;
+}
+.topbar-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.stamp { font-family: var(--mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--rule); background: var(--card); color: var(--ink);
+  border-radius: 2px; padding: 8px 14px; font-size: 14px; font-weight: 500;
+  transition: background .15s, border-color .15s;
+}
+.btn:hover { border-color: var(--ink); }
+.btn.primary { background: var(--yellow); border-color: var(--yellow); color: #1A1911; }
+.btn.primary:hover { filter: brightness(0.96); }
+.btn[disabled] { opacity: .55; cursor: progress; }
+.btn .spin { width: 12px; height: 12px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .8s linear infinite; display: none; }
+.btn.busy .spin { display: inline-block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Artwork header */
+.art {
+  position: relative; width: 100%; aspect-ratio: 16 / 7; max-width: 100%;
+  border-radius: 3px; overflow: hidden; background: var(--yellow-soft);
+  margin-top: 6px;
+}
+@media (max-width: 640px) { .art { aspect-ratio: 4 / 3; } }
+.art canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.art .date {
+  position: absolute; left: 24px; bottom: 20px;
+  font-family: var(--display); font-size: clamp(28px, 5vw, 52px); line-height: .95; color: #1A1911;
+  text-shadow: 0 1px 0 rgba(255,255,255,.35);
+}
+.art .date small { display: block; font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 10px; opacity: .8; }
+.art .tz { position: absolute; right: 20px; bottom: 20px; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #1A1911; opacity: .75; }
+
+.greeting { font-size: clamp(40px, 7vw, 64px); line-height: 1.02; margin-top: 36px; }
+.greeting em { font-style: italic; color: var(--yellow-ink); }
+.intro { font-size: 18px; line-height: 1.5; margin: 18px 0 0; max-width: 62ch; color: var(--muted); }
+.intro a { text-decoration-color: var(--yellow); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+
+/* Sources */
+.sources { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
+.src {
+  display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted);
+  border: 1px solid var(--rule); border-radius: 2px; padding: 5px 10px 5px 8px; background: transparent;
+}
+.src i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; border: 1.5px solid var(--muted); }
+.src.live i { background: var(--green); border-color: var(--green); }
+.src.sample i { background: var(--yellow); border-color: var(--yellow); }
+.src.partial i { background: linear-gradient(90deg, var(--green) 50%, transparent 50%); border-color: var(--green); }
+.src.off { border-style: dashed; }
+.src b { font-weight: 600; color: var(--ink); }
+
+/* Sections */
+main { display: grid; gap: 64px; margin-top: 64px; }
+section { min-width: 0; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+.eyebrow .num { color: var(--yellow-ink); }
+h2 { font-size: clamp(32px, 5vw, 42px); line-height: 1.08; margin-top: 10px; }
+.lede { color: var(--muted); margin: 10px 0 0; max-width: 60ch; }
+
+/* Pills */
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; border-radius: 2px; padding: 3px 7px; white-space: nowrap; }
+.pill.commit { background: var(--yellow); color: #1A1911; }
+.pill.suggest { border: 1px solid var(--rule); color: var(--muted); }
+.pill.gap { background: var(--yellow-soft); color: var(--yellow-ink); }
+
+/* Push forward */
+.push { margin-top: 26px; border: 1px solid var(--rule); border-radius: 3px; background: var(--card); overflow: hidden; }
+.push-head { padding: 22px 24px 18px; display: grid; gap: 10px; }
+.push-head h3 { font-size: 30px; line-height: 1.1; padding-bottom: 14px; position: relative; }
+.push-head h3::after, .detail h3::after { content: ""; position: absolute; left: 0; bottom: 0; width: 48px; height: 1px; background: var(--yellow); }
+.push-why { color: var(--muted); font-size: 15px; margin: 0; }
+.push-meta { display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 13px; color: var(--muted); align-items: center; }
+.draft { border-top: 1px solid var(--rule); padding: 20px 24px 22px; background: var(--paper); }
+.draft-label { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--yellow-ink); margin-bottom: 10px; display: flex; justify-content: space-between; gap: 6px 16px; flex-wrap: wrap; align-items: baseline; }
+.draft-label .note { font-family: var(--body); font-size: 13px; letter-spacing: 0; text-transform: none; color: var(--muted); }
+.fieldnote { border-left: 1px solid var(--muted); padding: 2px 0 2px 14px; font-size: 14px; color: var(--muted); }
+.fieldnote b { display: block; font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 500; margin-bottom: 4px; color: var(--muted); }
+.draft textarea {
+  width: 100%; min-height: 220px; resize: vertical; border: 0; background: transparent; color: var(--ink);
+  font: inherit; font-size: 16px; line-height: 1.55; padding: 0; outline: none;
+}
+.draft-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; align-items: center; }
+.guard { font-size: 13px; color: var(--muted); margin: 0; }
+
+/* To-dos */
+.todo-list { list-style: none; margin: 22px 0 0; padding: 0; display: grid; }
+.todo { display: grid; grid-template-columns: 28px 1fr; gap: 14px; padding: 18px 0; border-top: 1px solid var(--rule); align-items: start; }
+.todo:last-child { border-bottom: 1px solid var(--rule); }
+.todo input { appearance: none; width: 22px; height: 22px; margin: 3px 0 0; border: 1px solid var(--muted); border-radius: 2px; background: var(--card); cursor: pointer; position: relative; }
+.todo input:checked { background: var(--yellow); border-color: var(--yellow); }
+.todo input:checked::after { content: ""; position: absolute; left: 7px; top: 2px; width: 5px; height: 11px; border: solid #1A1911; border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
+.todo-body { min-width: 0; display: grid; gap: 6px; }
+.todo-title { font-size: 18px; font-weight: 500; line-height: 1.35; }
+.todo.done .todo-title { text-decoration: line-through; color: var(--muted); }
+.todo.done { opacity: .7; }
+.todo-meta { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 13px; color: var(--muted); align-items: center; }
+.todo-why { font-size: 14px; color: var(--muted); margin: 0; }
+.evidence { font-size: 14px; color: var(--ink); margin: 2px 0 0; padding-left: 12px; border-left: 2px solid var(--yellow); font-style: italic; }
+.srclink { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); text-decoration: none; }
+.srclink:hover { color: var(--ink); }
+.mono { font-family: var(--mono); font-size: 11px; letter-spacing: .05em; text-transform: uppercase; border: 1px solid var(--rule); border-radius: 2px; padding: 1px 5px; }
+.todo-summary { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin-top: 14px; }
+details.hidden-items { margin-top: 18px; font-size: 14px; color: var(--muted); }
+details.hidden-items summary { cursor: pointer; font-weight: 500; }
+details.hidden-items ul { margin: 10px 0 0; padding-left: 18px; display: grid; gap: 6px; }
+
+/* Updates */
+.projects { display: grid; gap: 28px; margin-top: 22px; }
+.project { border-top: 1px solid var(--rule); padding-top: 18px; }
+.project h3 { font-size: 26px; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.project h3 span { font-family: var(--body); font-size: 13px; color: var(--muted); }
+.updates { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 12px; }
+.update { display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start; }
+.svc { width: 34px; height: 34px; border-radius: 2px; border: 1px solid var(--rule); background: var(--card); display: grid; place-items: center; font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--muted); }
+.update-text { font-size: 16px; min-width: 0; }
+.update-text .when { color: var(--muted); font-size: 13px; margin-left: 8px; font-variant-numeric: tabular-nums; }
+.update-text a { text-decoration-color: var(--rule); text-underline-offset: 3px; }
+.update-text a:hover { text-decoration-color: var(--yellow); }
+.notice { margin-top: 22px; border-left: 1px solid var(--muted); padding: 2px 0 2px 14px; font-size: 14px; color: var(--muted); }
+.notice b { display: block; font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 500; margin-bottom: 4px; }
+
+/* Your day */
+.day { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 28px; margin-top: 26px; align-items: start; }
+@media (max-width: 760px) { .day { grid-template-columns: 1fr; } }
+.timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.slot { display: grid; grid-template-columns: 64px 1fr; gap: 12px; align-items: stretch; }
+.slot time { font-family: var(--mono); font-size: 12px; color: var(--muted); padding-top: 12px; font-variant-numeric: tabular-nums; }
+.meeting {
+  width: 100%; text-align: left; border: 1px solid var(--rule); background: var(--card); border-radius: 2px;
+  padding: 12px 14px; display: grid; gap: 4px; transition: border-color .15s, background .15s;
+}
+.meeting:hover { border-color: var(--ink); }
+.meeting[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 3px 0 0 var(--yellow); }
+.meeting .t { font-weight: 500; font-size: 16px; line-height: 1.3; }
+.meeting .m { color: var(--muted); font-size: 13px; }
+.focus { border-radius: 2px; padding: 10px 14px; background: var(--yellow-soft); color: var(--yellow-ink); font-size: 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.focus b { font-weight: 600; }
+.detail { border: 1px solid var(--rule); background: var(--card); border-radius: 3px; padding: 22px 24px; display: grid; gap: 14px; min-width: 0; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); }
+@media (max-width: 760px) { .detail { position: static; } }
+.detail h3 { font-size: 30px; line-height: 1.1; padding-bottom: 14px; position: relative; }
+.detail .meta { display: grid; gap: 4px; color: var(--muted); font-size: 14px; }
+.detail .meta b { color: var(--ink); font-weight: 500; }
+.detail h4 { margin: 6px 0 0; font-size: 12px; font-family: var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.detail ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 15px; }
+.detail .links { display: flex; flex-wrap: wrap; gap: 8px; }
+.detail .links a { font-size: 13px; text-decoration: none; border: 1px solid var(--rule); border-radius: 2px; padding: 4px 10px; color: var(--muted); }
+.detail .links a:hover { color: var(--ink); border-color: var(--ink); }
+.prep-generated { border-top: 1px solid var(--rule); padding-top: 12px; display: grid; gap: 8px; }
+.day-summary { margin-top: 24px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--rule); border-left: 1px solid var(--rule); }
+@media (max-width: 560px) { .day-summary { grid-template-columns: 1fr; } }
+.stat { border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 16px 18px 18px; }
+.stat .k { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 22px; }
+.stat .n { font-family: var(--display); font-size: 38px; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.stat .l { font-size: 13px; color: var(--muted); margin-top: 8px; }
+.stat.hi .n { color: var(--yellow-ink); }
+
+/* Footer */
+footer { margin-top: 72px; padding-block: 28px 56px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 13px; display: grid; gap: 16px; }
+footer p { margin: 0; }
+
+/* Toast */
+.toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); transform: translate(-50%, 20px); opacity: 0; background: var(--ink); color: var(--paper); padding: 10px 16px; border-radius: 999px; font-size: 14px; pointer-events: none; transition: opacity .2s, transform .2s; max-width: calc(100vw - 32px); text-align: center; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="topbar">
+      <div class="brand"><span class="dot"></span>Brief <span class="sample-badge" id="mode-badge">Sample data</span></div>
+      <div class="topbar-right">
+        <span class="stamp" id="generated-at">Generated —</span>
+        <button class="btn" id="refresh"><span class="spin"></span><span id="refresh-label">Refresh</span></button>
+      </div>
+    </div>
+
+    <div class="art" aria-label="Morning artwork">
+      <canvas id="art"></canvas>
+      <div class="date" id="art-date"><small>Today</small>Thursday<br>8 October</div>
+      <div class="tz">Sydney · AEDT</div>
+    </div>
+
+    <h1 class="greeting" id="greeting">Good morning, <em>Shamal</em>.</h1>
+    <p class="intro" id="intro"></p>
+
+    <div class="sources" id="sources" aria-label="Connected sources"></div>
+  </header>
+
+  <main>
+    <section id="push" aria-labelledby="push-h">
+      <div class="eyebrow"><span class="num">01 /</span> Push your work forward</div>
+      <h2 id="push-h">One thing worth doing before your first meeting.</h2>
+      <p class="lede" id="push-lede">Chosen because it unblocks the most people today. It's a suggestion, not something you promised. Nothing is sent until you do it yourself.</p>
+      <div class="push" id="push-card"></div>
+    </section>
+
+    <section id="todos" aria-labelledby="todos-h">
+      <div class="eyebrow"><span class="num">02 /</span> Top to-dos</div>
+      <h2 id="todos-h">What people are waiting on.</h2>
+      <p class="lede"><span class="pill commit">You committed</span> marks things you said you'd do, in your own words. <span class="pill suggest">Suggested</span> marks things the brief thinks are worth doing. Completed and duplicate items are left out and listed below.</p>
+      <ul class="todo-list" id="todo-list"></ul>
+      <div class="todo-summary"><span id="todo-count"></span><span>Ticks are saved on this device only.</span></div>
+      <details class="hidden-items" id="hidden-items"></details>
+    </section>
+
+    <section id="updates" aria-labelledby="updates-h">
+      <div class="eyebrow"><span class="num">03 /</span> New updates</div>
+      <h2 id="updates-h">What changed since yesterday.</h2>
+      <p class="lede">Only changes on projects you're active in. Routine notifications, bot noise and read-only mentions are filtered out.</p>
+      <div class="projects" id="projects"></div>
+      <div class="notice" id="updates-notice"></div>
+    </section>
+
+    <section id="day" aria-labelledby="day-h">
+      <div class="eyebrow"><span class="num">04 /</span> Your day</div>
+      <h2 id="day-h">Four meetings, with room to think in between.</h2>
+      <p class="lede">Select a meeting for context and preparation notes. Focus blocks are gaps of 45 minutes or more inside your 9:00–17:30 working day.</p>
+      <div class="day-summary" id="day-summary"></div>
+      <div class="day">
+        <ol class="timeline" id="timeline"></ol>
+        <aside class="detail" id="detail" aria-live="polite"></aside>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p id="footer-generated"></p>
+    <div class="fieldnote"><b>How this is made</b>All times are Australia/Sydney. Retrieved messages, emails and documents are treated as source material for the summary, never as instructions. Where a source was unavailable, the brief says so instead of guessing.</div>
+    <p id="footer-proto">Prototype: every item on this page is clearly labelled sample data. Live sources connect through a server-side backend that holds the credentials; this page never talks to Slack, Google, GitHub or Figma directly.</p>
+    <p id="footer-live" hidden>Generated by Claude from the connected sources, read-only. Links point at the original message, event or document. Nothing was sent or changed anywhere.</p>
+  </footer>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ============================================================
+   CONFIG
+   Set BRIEF_CONFIG.endpoint to the backend URL that returns a
+   Briefing JSON document (see data contract). With no endpoint,
+   the page renders the embedded SAMPLE briefing.
+   ============================================================ */
+const BRIEF_CONFIG = { endpoint: null, timeZone: 'Australia/Sydney', workday: { start: '09:00', end: '17:30' }, minFocusMinutes: 45 };
+
+/* ------------------------------------------------------------
+   SAMPLE BRIEFING (clearly labelled; nothing here is real)
+   Shape = the data contract the backend must produce.
+   ------------------------------------------------------------ */
+const SAMPLE = {
+  sample: true,
+  date: '2026-10-08',
+  generatedAt: '2026-10-08T06:30:00+11:00',
+  user: { firstName: 'Shamal' },
+  intro: "You're carrying one promise into today: the Brief Builder scope note you told Priya you'd send by midday. The onboarding redesign shipped its first PR overnight and has review comments waiting. Your afternoon is clear after 15:00, which is the best window for the quarterly planning doc you keep bumping. Figma isn't connected yet, so any design changes since yesterday aren't reflected here.",
+  sources: [
+    { id: 'slack', name: 'Slack', status: 'sample', detail: '14 channels, 3 DMs scanned' },
+    { id: 'gmail', name: 'Gmail', status: 'sample', detail: '22 threads since 17:00 yesterday' },
+    { id: 'calendar', name: 'Google Calendar', status: 'sample', detail: 'Primary calendar' },
+    { id: 'drive', name: 'Google Drive', status: 'sample', detail: '6 docs changed' },
+    { id: 'github', name: 'GitHub', status: 'sample', detail: '2 repos watched' },
+    { id: 'figma', name: 'Figma', status: 'disconnected', detail: 'Not connected. Design updates not shown.' }
+  ],
+  push: {
+    kind: 'suggested',
+    title: 'Reply to Priya with the Brief Builder scope note',
+    why: 'Priya asked for it on Tuesday and you said "I\'ll have it to you by midday Thursday" in #proj-brief-builder. Three engineers are blocked on scope before Friday\'s planning. The draft below pulls the three decisions already agreed in the Scope v2 doc.',
+    source: { service: 'slack', label: '#proj-brief-builder · Tue 14:12', url: 'https://slack.com/app_redirect?channel=proj-brief-builder' },
+    relatedSources: [
+      { service: 'drive', label: 'Brief Builder – Scope v2 (Google Doc)', url: 'https://docs.google.com/document/d/sample-scope-v2' },
+      { service: 'gmail', label: 'Thread: "Planning Friday – inputs needed"', url: 'https://mail.google.com/mail/u/0/#inbox/sample-thread-1' }
+    ],
+    draft: "Hi Priya,\n\nHere's the Brief Builder scope note I promised for today.\n\nIn scope for the first release:\n1. Daily brief generation for Slack, Gmail and Calendar (Drive and GitHub follow in release two).\n2. One suggested action per day, with an editable draft the user approves before anything is sent.\n3. Read-only integrations. No message is sent or document changed without an explicit confirmation step.\n\nOut of scope for now: Figma activity, shared team briefs, and mobile push notifications.\n\nOpen question for Friday: do we want the brief to run at 06:30 or 07:30 Sydney time? Engineering has a mild preference for 06:30 so the overnight job window is wider.\n\nShout if anything's missing and I'll update the doc before planning.\n\nShamal",
+    draftNote: 'Sample draft, generated from the Scope v2 doc and the Slack thread above. Edit freely; copying is the only action available here.'
+  },
+  todos: [
+    { id: 't1', kind: 'commitment', title: 'Send Priya the Brief Builder scope note', due: 'Today, 12:00', why: 'Blocks three engineers before Friday planning.',
+      evidence: '"I\'ll have it to you by midday Thursday."', source: { service: 'slack', label: '#proj-brief-builder', url: 'https://slack.com/app_redirect?channel=proj-brief-builder' } },
+    { id: 't2', kind: 'commitment', title: 'Review Tom\'s onboarding PR #412 (empty-state copy)', due: 'Today', why: 'You\'re the only requested reviewer and Tom wants to merge before the Thursday demo.',
+      evidence: '"Will take a look first thing tomorrow 👍"', source: { service: 'github', label: 'canva-labs/onboarding-web #412', url: 'https://github.com/example/onboarding-web/pull/412' } },
+    { id: 't3', kind: 'suggested', title: 'Confirm whether Lena needs you at the Research readout', due: 'Before 11:00', why: 'You were added as optional yesterday evening; it overlaps with your focus block.',
+      source: { service: 'calendar', label: 'Research readout · 11:00', url: 'https://calendar.google.com/calendar/u/0/r/day/2026/10/8' } },
+    { id: 't4', kind: 'suggested', title: 'Answer the two open comments on "Quarterly planning – draft"', due: 'This week', why: 'Marcus and Aisha left questions 2 days ago; the doc is due to leadership on Monday.',
+      source: { service: 'drive', label: 'Quarterly planning – draft (Google Doc)', url: 'https://docs.google.com/document/d/sample-quarterly-planning' } },
+    { id: 't5', kind: 'commitment', title: 'Send the vendor invoice to Finance', due: 'Friday', why: 'Finance\'s cut-off for this month is Friday 15:00.',
+      evidence: '"I\'ll forward the invoice by Friday."', source: { service: 'gmail', label: 'Thread: "Re: Design tooling invoice"', url: 'https://mail.google.com/mail/u/0/#inbox/sample-thread-2' } }
+  ],
+  hidden: [
+    { reason: 'completed', text: '"Share the research deck" — you posted it in #design-research at 17:42 yesterday.' },
+    { reason: 'completed', text: '"Approve Hana\'s leave request" — approved in the HR tool, confirmation email received.' },
+    { reason: 'duplicate', text: 'Email reminder about the scope note (same as to-do 1).' }
+  ],
+  projects: [
+    { name: 'Onboarding redesign', meta: '3 updates', updates: [
+      { service: 'github', text: 'Tom opened PR #412 "Empty-state copy and illustrations" and requested your review.', when: '22:14', url: 'https://github.com/example/onboarding-web/pull/412' },
+      { service: 'github', text: 'CI passed on main after the a11y fixes; the staging build is live.', when: '23:02', url: 'https://github.com/example/onboarding-web/actions' },
+      { service: 'slack', text: 'Mei flagged in #proj-onboarding that the welcome email copy still references the old plan names.', when: '07:48 today', url: 'https://slack.com/app_redirect?channel=proj-onboarding' }
+    ]},
+    { name: 'Brief Builder', meta: '2 updates', updates: [
+      { service: 'drive', text: 'Priya edited "Brief Builder – Scope v2": added a "Risks" section and resolved 4 comments.', when: '18:30', url: 'https://docs.google.com/document/d/sample-scope-v2' },
+      { service: 'gmail', text: 'Legal replied on the data-retention question: 30-day retention is fine if briefs are per-user and deletable.', when: '20:05', url: 'https://mail.google.com/mail/u/0/#inbox/sample-thread-3' }
+    ]},
+    { name: 'Quarterly planning', meta: '1 update', updates: [
+      { service: 'drive', text: 'Aisha added a comment asking for a headcount assumption in the "Resourcing" section.', when: 'Tue 16:20', url: 'https://docs.google.com/document/d/sample-quarterly-planning' }
+    ]}
+  ],
+  updatesNotice: 'Figma is not connected, so changes to the Onboarding and Brief Builder design files are not included. Connect Figma to see file edits, comments and version history here.',
+  meetings: [
+    { id: 'm1', title: 'Design team stand-up', start: '2026-10-08T09:15:00+11:00', end: '2026-10-08T09:30:00+11:00', location: 'Google Meet', attendees: ['Design team (8)'], optional: false,
+      context: 'Daily sync. Tom will probably ask about PR #412.',
+      prep: ['Decide whether you can review PR #412 before the 13:00 demo, and say so.', 'Mention the welcome-email copy issue Mei raised so someone owns it.'],
+      links: [{ label: 'PR #412', url: 'https://github.com/example/onboarding-web/pull/412' }, { label: '#proj-onboarding', url: 'https://slack.com/app_redirect?channel=proj-onboarding' }] },
+    { id: 'm2', title: 'Research readout: new-user interviews', start: '2026-10-08T11:00:00+11:00', end: '2026-10-08T11:45:00+11:00', location: 'Room 4.02 + Meet', attendees: ['Lena (host)', 'Marcus', 'Research guild'], optional: true,
+      context: 'You were added as optional yesterday at 18:10. Lena hasn\'t said why. It overlaps your morning focus block.',
+      prep: ['Ask Lena whether she needs you there, or whether the recording is enough.', 'If you go: the readout covers onboarding drop-off, which feeds directly into PR #412\'s empty-state copy.'],
+      links: [{ label: 'Interview synthesis (Google Doc)', url: 'https://docs.google.com/document/d/sample-research-synthesis' }] },
+    { id: 'm3', title: 'Onboarding demo to Product', start: '2026-10-08T13:00:00+11:00', end: '2026-10-08T13:30:00+11:00', location: 'Google Meet', attendees: ['Tom (presenting)', 'Product leads (4)', 'You'], optional: false,
+      context: 'Tom demos the new onboarding flow on staging. Product will ask about launch date and the metrics plan.',
+      prep: ['Staging is up as of 23:02; check it loads before the call.', 'Have the drop-off numbers from last month handy (in the Quarterly planning doc, "Baseline" tab).', 'Known gap: welcome-email copy still uses old plan names. Say it up front.'],
+      links: [{ label: 'Staging build', url: 'https://github.com/example/onboarding-web/actions' }, { label: 'Quarterly planning – draft', url: 'https://docs.google.com/document/d/sample-quarterly-planning' }] },
+    { id: 'm4', title: '1:1 with Priya', start: '2026-10-08T14:30:00+11:00', end: '2026-10-08T15:00:00+11:00', location: 'Level 4 breakout', attendees: ['Priya'], optional: false,
+      context: 'Weekly. The scope note is due to her two and a half hours before this, so it will be fresh.',
+      prep: ['If the scope note has gone out, use the time on Friday\'s planning agenda instead.', 'Priya added a "Risks" section to Scope v2 last night. Read it beforehand; it\'s about 300 words.'],
+      links: [{ label: 'Brief Builder – Scope v2', url: 'https://docs.google.com/document/d/sample-scope-v2' }] }
+  ]
+};
+
+/* LIVE-START */
+const LIVE = null;
+/* LIVE-END */
+
+/* ------------------------------------------------------------ helpers */
+const TZ = BRIEF_CONFIG.timeZone;
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const SERVICE_LABEL = { slack: 'Slack', gmail: 'Gmail', calendar: 'Calendar', drive: 'Drive', github: 'GitHub', figma: 'Figma', zoom: 'Zoom' };
+const SERVICE_MONO = { slack: 'SL', gmail: 'GM', calendar: 'CA', drive: 'DR', github: 'GH', figma: 'FG', zoom: 'ZM' };
+
+const fmtTime = (iso) => new Intl.DateTimeFormat('en-AU', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(iso));
+const fmtStamp = (iso) => new Intl.DateTimeFormat('en-AU', { timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZoneName: 'short' }).format(new Date(iso));
+const parts = (date, opts) => Object.fromEntries(new Intl.DateTimeFormat('en-AU', { timeZone: TZ, ...opts }).formatToParts(date).map(p => [p.type, p.value]));
+const minutesInTZ = (iso) => { const p = parts(new Date(iso), { hour: '2-digit', minute: '2-digit', hour12: false }); return (+p.hour % 24) * 60 + +p.minute; };
+const hm = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+const dur = (m) => m >= 60 ? `${Math.floor(m / 60)} h${m % 60 ? ' ' + (m % 60) + ' min' : ''}` : `${m} min`;
+
+function storage(key, val) {
+  try { if (val === undefined) return JSON.parse(localStorage.getItem(key) || 'null'); localStorage.setItem(key, JSON.stringify(val)); } catch (e) { return null; }
+}
+let toastTimer;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600); }
+
+function srcLink(src) {
+  if (!src) return '';
+  return `<a class="srclink" href="${esc(src.url)}" target="_blank" rel="noopener"><span class="mono">${esc(SERVICE_LABEL[src.service] || src.service)}</span>${esc(src.label)}</a>`;
+}
+
+/* ------------------------------------------------------------ render */
+let B = null;            // current briefing
+let selectedMeeting = null;
+
+function render(b) {
+  B = b;
+  const dateObj = new Date(b.date + 'T12:00:00+11:00');
+  const dp = parts(dateObj, { weekday: 'long', day: 'numeric', month: 'long' });
+  $('#art-date').innerHTML = `<small>Today</small>${esc(dp.weekday)}<br>${esc(dp.day)} ${esc(dp.month)}`;
+  const tzName = parts(new Date(b.generatedAt), { timeZoneName: 'short' }).timeZoneName || '';
+  $('.tz').textContent = `Sydney · ${tzName}`;
+
+  const hour = +parts(new Date(b.generatedAt), { hour: '2-digit', hour12: false }).hour % 24;
+  const greet = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  $('#greeting').innerHTML = `${greet}, <em>${esc(b.user.firstName)}</em>.`;
+  $('#intro').textContent = b.intro;
+
+  $('#generated-at').textContent = `Generated ${fmtStamp(b.generatedAt)}`;
+  $('#footer-generated').textContent = `This brief was generated at ${fmtStamp(b.generatedAt)} for ${dp.weekday} ${dp.day} ${dp.month}. ${b.sample ? 'It uses sample data only.' : ''}`;
+  $('#mode-badge').textContent = b.sample ? 'Sample data' : 'Live';
+  $('#footer-proto').hidden = !b.sample; $('#footer-live').hidden = !!b.sample;
+
+  renderSources(b.sources);
+  renderPush(b.push);
+  renderTodos(b);
+  renderUpdates(b);
+  renderDay(b);
+}
+
+function renderSources(list) {
+  $('#sources').innerHTML = list.map(s => {
+    const cls = s.status === 'live' ? 'live' : s.status === 'sample' ? 'sample' : s.status === 'partial' ? 'partial' : 'off';
+    const label = s.status === 'live' ? 'Connected' : s.status === 'sample' ? 'Sample' : s.status === 'partial' ? 'Limited' : s.status === 'error' ? 'Unavailable' : 'Not connected';
+    return `<span class="src ${cls}" title="${esc(s.detail)}"><i></i><b>${esc(s.name)}</b> ${label}</span>`;
+  }).join('');
+}
+
+function renderPush(p) {
+  $('#push-lede').textContent = p.kind === 'commitment' ? "Chosen because it protects something you said you'd do. Nothing is sent until you do it yourself." : "Chosen because it unblocks the most people today. It's a suggestion, not something you promised. Nothing is sent until you do it yourself.";
+  $('#push-card').innerHTML = `
+    <div class="push-head">
+      <div class="push-meta"><span class="pill ${p.kind === 'commitment' ? 'commit' : 'suggest'}">${p.kind === 'commitment' ? 'You committed' : 'Suggested'}</span>${srcLink(p.source)}</div>
+      <h3>${esc(p.title)}</h3>
+      <p class="push-why">${esc(p.why)}</p>
+      <div class="push-meta">${(p.relatedSources || []).map(srcLink).join('')}</div>
+    </div>
+    <div class="draft">
+      <div class="draft-label"><span>Starting draft</span><span class="note">${esc(p.draftNote)}</span></div>
+      <label class="sr" for="draft-text">Draft reply</label>
+      <textarea id="draft-text">${esc(p.draft)}</textarea>
+      <div class="draft-actions">
+        <button class="btn primary" id="copy-draft">Copy draft</button>
+        <a class="btn" href="${esc(p.source.url)}" target="_blank" rel="noopener">Open in ${esc(SERVICE_LABEL[p.source.service] || 'source')}</a>
+        <p class="guard">This page can't send. Paste the draft where you want it, then send it yourself.</p>
+      </div>
+    </div>`;
+  $('#copy-draft').addEventListener('click', async () => {
+    const ta = $('#draft-text');
+    try { await navigator.clipboard.writeText(ta.value); toast('Draft copied'); }
+    catch (e) { ta.focus(); ta.select(); toast('Select-all is ready. Press copy.'); }
+  });
+}
+
+function renderTodos(b) {
+  const key = `brief:done:${b.date}`;
+  const done = new Set(storage(key) || []);
+  const list = $('#todo-list');
+  list.innerHTML = b.todos.map(t => `
+    <li class="todo ${done.has(t.id) ? 'done' : ''}" data-id="${esc(t.id)}">
+      <input type="checkbox" id="todo-${esc(t.id)}" ${done.has(t.id) ? 'checked' : ''} aria-label="Mark done: ${esc(t.title)}">
+      <div class="todo-body">
+        <label class="todo-title" for="todo-${esc(t.id)}">${esc(t.title)}</label>
+        <div class="todo-meta"><span class="pill ${t.kind === 'commitment' ? 'commit' : 'suggest'}">${t.kind === 'commitment' ? 'You committed' : 'Suggested'}</span><span>Due ${esc(t.due)}</span>${srcLink(t.source)}</div>
+        ${t.evidence ? `<p class="evidence">${esc(t.evidence)}</p>` : ''}
+        <p class="todo-why">${esc(t.why)}</p>
+      </div>
+    </li>`).join('');
+  const updateCount = () => {
+    const n = list.querySelectorAll('.todo.done').length;
+    const commits = b.todos.filter(t => t.kind === 'commitment').length;
+    $('#todo-count').textContent = `${n} of ${b.todos.length} done · ${commits} commitment${commits === 1 ? '' : 's'}, ${b.todos.length - commits} suggested`;
+  };
+  list.onchange = (e) => {
+    const li = e.target.closest('.todo'); if (!li) return;
+    li.classList.toggle('done', e.target.checked);
+    if (e.target.checked) done.add(li.dataset.id); else done.delete(li.dataset.id);
+    storage(key, [...done]); updateCount();
+  };
+  updateCount();
+
+  const h = $('#hidden-items');
+  if (b.hidden && b.hidden.length) {
+    const c = b.hidden.filter(x => x.reason === 'completed').length, d = b.hidden.length - c;
+    h.hidden = false;
+    h.innerHTML = `<summary>${b.hidden.length} item${b.hidden.length === 1 ? '' : 's'} left out: ${c} already done, ${d} duplicate${d === 1 ? '' : 's'}</summary>
+      <ul>${b.hidden.map(x => `<li><span class="mono">${esc(x.reason)}</span> ${esc(x.text)}</li>`).join('')}</ul>`;
+  } else { h.hidden = true; }
+}
+
+function renderUpdates(b) {
+  $('#projects').innerHTML = b.projects.map(p => `
+    <article class="project">
+      <h3>${esc(p.name)} <span>${esc(p.meta)}</span></h3>
+      <ul class="updates">${p.updates.map(u => `
+        <li class="update">
+          <div class="svc" title="${esc(SERVICE_LABEL[u.service] || u.service)}">${esc(SERVICE_MONO[u.service] || '··')}</div>
+          <div class="update-text"><a href="${esc(u.url)}" target="_blank" rel="noopener">${esc(u.text)}</a><span class="when">${esc(u.when)}</span></div>
+        </li>`).join('')}</ul>
+    </article>`).join('');
+  const n = $('#updates-notice');
+  if (b.updatesNotice) { n.hidden = false; n.innerHTML = `<b>Not shown</b>${esc(b.updatesNotice)}`; } else { n.hidden = true; }
+}
+
+function computeFocus(meetings) {
+  const [ws, we] = [BRIEF_CONFIG.workday.start, BRIEF_CONFIG.workday.end].map(s => { const [h, m] = s.split(':').map(Number); return h * 60 + m; });
+  const busy = meetings.filter(m => !m.optional || m.attending).map(m => [minutesInTZ(m.start), minutesInTZ(m.end)]).sort((a, b) => a[0] - b[0]);
+  const gaps = []; let cursor = ws;
+  for (const [s, e] of busy) { if (s - cursor >= BRIEF_CONFIG.minFocusMinutes) gaps.push([cursor, s]); cursor = Math.max(cursor, e); }
+  if (we - cursor >= BRIEF_CONFIG.minFocusMinutes) gaps.push([cursor, we]);
+  return gaps;
+}
+
+function renderDay(b) {
+  const meetings = [...b.meetings].sort((a, c) => new Date(a.start) - new Date(c.start));
+  const gaps = computeFocus(meetings);
+  const meetingMin = meetings.filter(m => !m.optional).reduce((n, m) => n + (minutesInTZ(m.end) - minutesInTZ(m.start)), 0);
+  const focusMin = gaps.reduce((n, [s, e]) => n + (e - s), 0);
+  const longest = gaps.reduce((best, g) => (g[1] - g[0]) > (best[1] - best[0]) ? g : best, [0, 0]);
+
+  const required = meetings.filter(m => !m.optional).length, optional = meetings.length - required;
+  $('#day-h').textContent = `${['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight'][meetings.length] || meetings.length} meeting${meetings.length === 1 ? '' : 's'}${optional ? ` (${optional} optional)` : ''}, with ${focusMin >= 180 ? 'real room' : focusMin >= 90 ? 'some room' : 'little room'} to think in between.`;
+
+  $('#day-summary').innerHTML = `
+    <div class="stat hi"><div class="k">Focus</div><div class="n">${esc(dur(focusMin))}</div><div class="l">Across ${gaps.length} block${gaps.length === 1 ? '' : 's'} of 45 min or more</div></div>
+    <div class="stat"><div class="k">Meetings</div><div class="n">${esc(dur(meetingMin))}</div><div class="l">In required meetings</div></div>
+    <div class="stat"><div class="k">Best window</div><div class="n">${longest[1] ? esc(hm(longest[0])) : '—'}</div><div class="l">${longest[1] ? `Longest block starts (${dur(longest[1] - longest[0])})` : 'No block of 45 min or more'}</div></div>`;
+
+  // interleave meetings and gaps on the timeline
+  const items = [];
+  for (const m of meetings) items.push({ type: 'meeting', at: minutesInTZ(m.start), m });
+  for (const [s, e] of gaps) items.push({ type: 'gap', at: s, s, e });
+  items.sort((a, c) => a.at - c.at || (a.type === 'gap' ? -1 : 1));
+  $('#timeline').innerHTML = items.map(it => it.type === 'gap'
+    ? `<li class="slot"><time>${hm(it.s)}</time><div class="focus"><span><b>Focus block</b> · ${dur(it.e - it.s)}</span><span>${hm(it.s)}–${hm(it.e)}</span></div></li>`
+    : `<li class="slot"><time>${fmtTime(it.m.start)}</time>
+         <button class="meeting" data-id="${esc(it.m.id)}" aria-pressed="false">
+           <span class="t">${esc(it.m.title)}</span>
+           <span class="m">${fmtTime(it.m.start)}–${fmtTime(it.m.end)} · ${esc(it.m.location)}${it.m.optional ? ' · <span class="pill gap">Optional</span>' : ''}${new Date(it.m.end) <= new Date(b.generatedAt) ? ' · <span class="pill suggest">Finished</span>' : ''}</span>
+         </button></li>`).join('');
+
+  $('#timeline').querySelectorAll('.meeting').forEach(btn => btn.addEventListener('click', () => selectMeeting(btn.dataset.id)));
+  selectMeeting(selectedMeeting && meetings.some(m => m.id === selectedMeeting) ? selectedMeeting : (meetings[0] && meetings[0].id));
+}
+
+function selectMeeting(id) {
+  selectedMeeting = id;
+  document.querySelectorAll('.meeting').forEach(btn => btn.setAttribute('aria-pressed', String(btn.dataset.id === id)));
+  const m = B.meetings.find(x => x.id === id);
+  const d = $('#detail');
+  if (!m) { d.innerHTML = '<p class="lede">No meetings today.</p>'; return; }
+  d.innerHTML = `
+    <div class="eyebrow">${new Date(m.end) <= new Date(B.generatedAt) ? 'Finished' : m.optional ? 'Optional' : 'Meeting'}</div>
+    <h3>${esc(m.title)}</h3>
+    <div class="meta">
+      <div><b>${fmtTime(m.start)}–${fmtTime(m.end)}</b> · ${dur(minutesInTZ(m.end) - minutesInTZ(m.start))}</div>
+      <div>${esc(m.location)}</div>
+      <div>With ${esc(m.attendees.join(', '))}</div>
+    </div>
+    <h4>Why it matters</h4>
+    <p style="margin:0;font-size:15px">${esc(m.context)}</p>
+    <h4>Preparation</h4>
+    <ul>${m.prep.map(p => `<li>${esc(p)}</li>`).join('')}</ul>
+    ${m.links && m.links.length ? `<h4>Related</h4><div class="links">${m.links.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join('')}</div>` : ''}
+    <div class="draft-actions"><button class="btn" id="gen-prep"><span class="spin"></span>Generate fuller prep notes</button></div>
+    <div class="prep-generated" id="prep-out" hidden></div>`;
+  $('#gen-prep').addEventListener('click', generatePrep);
+}
+
+function generatePrep() {
+  const btn = $('#gen-prep'); btn.disabled = true; btn.classList.add('busy');
+  const m = B.meetings.find(x => x.id === selectedMeeting);
+  setTimeout(() => {
+    const out = $('#prep-out'); out.hidden = false;
+    out.innerHTML = `<h4>Generated prep ${B.sample ? '(sample)' : ''}</h4>
+      <ul>
+        <li>Open with the one decision this meeting needs to make, then stop talking.</li>
+        <li>Three facts to have ready: ${esc(m.prep[0] || '')}</li>
+        <li>Likely question from ${esc(m.attendees[0] || 'the room')}: "what's the next step after this?" Have a date.</li>
+        <li>Follow-up you'd be committing to if you say yes: a written summary in ${esc(m.links && m.links[0] ? m.links[0].label : 'the project channel')} by end of day.</li>
+      </ul>
+      <p class="guard">In the live version this calls the backend, which reads the linked documents and recent messages (read-only) and writes nothing back.</p>`;
+    btn.disabled = false; btn.classList.remove('busy');
+  }, 900);
+}
+
+/* ------------------------------------------------------------ refresh */
+async function refresh() {
+  const btn = $('#refresh'); btn.disabled = true; btn.classList.add('busy'); $('#refresh-label').textContent = 'Refreshing';
+  try {
+    let data;
+    if (BRIEF_CONFIG.endpoint) {
+      const r = await fetch(BRIEF_CONFIG.endpoint, { credentials: 'include' });
+      if (r.status === 404) { toast('No brief has been published yet. Showing sample data.'); return; }
+      if (!r.ok) throw new Error(`Backend returned ${r.status}`);
+      data = await r.json();
+      if (B && !B.sample && data.generatedAt === B.generatedAt) { toast(`Still the brief from ${fmtStamp(B.generatedAt)}. The next one arrives at 06:30 on weekdays.`); return; }
+    } else if (B.sample) {
+      await new Promise(res => setTimeout(res, 1100));
+      data = { ...SAMPLE, generatedAt: new Date().toISOString() };
+    } else {
+      await new Promise(res => setTimeout(res, 600));
+      toast(`No backend connected. This brief was generated ${fmtStamp(B.generatedAt)}; ask Claude to regenerate it.`);
+      return;
+    }
+    render(data);
+    toast(data.sample ? 'Refreshed with sample data. No live sources are connected yet.' : 'Brief refreshed');
+  } catch (e) {
+    toast(`Couldn't refresh: ${e.message}. Showing the last brief.`);
+  } finally {
+    btn.disabled = false; btn.classList.remove('busy'); $('#refresh-label').textContent = 'Refresh';
+  }
+}
+$('#refresh').addEventListener('click', refresh);
+
+/* ------------------------------------------------------------ artwork: a painted morning over low hills */
+function drawArt() {
+  const c = $('#art'); const box = c.parentElement.getBoundingClientRect();
+  if (!box.width) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  c.width = Math.round(box.width * dpr); c.height = Math.round(box.height * dpr);
+  const ctx = c.getContext('2d'); ctx.scale(dpr, dpr);
+  const W = box.width, H = box.height;
+  const theme = document.documentElement.dataset.theme;
+  const dark = theme === 'dark' || (theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+  const sky = dark ? ['#26252B', '#4A4037', '#9C7A4A'] : ['#E6DFD5', '#F2E6D8', '#F8E4B4'];
+  const hills = dark ? ['#3B3934', '#2E2C28', '#23211D', '#161512'] : ['#CFC6B4', '#B1A58F', '#8C816D', '#5A5347'];
+  const sun = dark ? '#FFD84A' : '#FFD41F';
+
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, sky[0]); g.addColorStop(0.55, sky[1]); g.addColorStop(1, sky[2]);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+  // soft glow then sun
+  const sx = W * 0.72, sy = H * 0.5, sr = Math.min(W, H) * 0.19;
+  const glow = ctx.createRadialGradient(sx, sy, sr * 0.6, sx, sy, sr * 3);
+  glow.addColorStop(0, dark ? 'rgba(255,216,74,.28)' : 'rgba(255,212,31,.45)'); glow.addColorStop(1, 'rgba(255,212,31,0)');
+  ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = sun; ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI * 2); ctx.fill();
+
+  // birds
+  ctx.strokeStyle = dark ? 'rgba(241,238,227,.5)' : 'rgba(26,25,17,.45)'; ctx.lineWidth = 1.2;
+  [[0.18, 0.28], [0.23, 0.24], [0.27, 0.31], [0.55, 0.2]].forEach(([x, y]) => {
+    const bx = W * x, by = H * y, s = Math.max(5, W * 0.008);
+    ctx.beginPath(); ctx.moveTo(bx - s, by); ctx.quadraticCurveTo(bx - s / 2, by - s * 0.7, bx, by); ctx.quadraticCurveTo(bx + s / 2, by - s * 0.7, bx + s, by); ctx.stroke();
+  });
+
+  // hills: layered sine ridges with a seeded wobble
+  const seed = (n) => { const x = Math.sin(n * 12.9898) * 43758.5453; return x - Math.floor(x); };
+  hills.forEach((col, i) => {
+    const base = H * (0.62 + i * 0.1), amp = H * (0.09 - i * 0.012), freq = 1.4 + i * 0.6, phase = seed(i + 1) * 6;
+    ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(0, H);
+    for (let x = 0; x <= W; x += 4) {
+      const t = x / W;
+      const y = base - Math.sin(t * Math.PI * freq + phase) * amp - Math.sin(t * Math.PI * freq * 2.7 + phase * 1.3) * amp * 0.25;
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
+  });
+
+  // paper grain
+  const img = ctx.getImageData(0, 0, c.width, c.height), d = img.data;
+  let r = 1234567;
+  for (let i = 0; i < d.length; i += 4) { r = (r * 1664525 + 1013904223) >>> 0; const n = ((r >>> 24) / 255 - 0.5) * 16; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
+  ctx.putImageData(img, 0, 0);
+}
+let artRaf; const scheduleArt = () => { cancelAnimationFrame(artRaf); artRaf = requestAnimationFrame(drawArt); };
+window.addEventListener('resize', scheduleArt);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', scheduleArt);
+new MutationObserver(scheduleArt).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+/* ------------------------------------------------------------ boot */
+(async function boot() {
+  render(LIVE || SAMPLE);
+  drawArt();
+  if (BRIEF_CONFIG.endpoint) refresh();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,11 @@
+# Secrets for publishing to the live site: never commit
+.deploy/
+
+# Generated briefs contain your real Slack, Zoom and calendar content; keep them off GitHub
+briefs/
+today.html
+deploy/data/
+
+node_modules/
+.env
+.DS_Store

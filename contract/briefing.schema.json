@@ -1,0 +1,373 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://brief.local/schemas/briefing.json",
+  "title": "Briefing",
+  "description": "One generated daily brief. The web page renders exactly this document; the backend (and the LLM synthesis step) must produce it. Every link must come from a fetched source item, never invented.",
+  "type": "object",
+  "required": [
+    "sample",
+    "date",
+    "generatedAt",
+    "user",
+    "intro",
+    "sources",
+    "push",
+    "todos",
+    "hidden",
+    "projects",
+    "meetings"
+  ],
+  "properties": {
+    "sample": {
+      "type": "boolean",
+      "description": "true when the content is sample data. The page shows a badge."
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Local date in Australia/Sydney, YYYY-MM-DD."
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 with offset, e.g. 2026-10-08T06:30:00+11:00."
+    },
+    "user": {
+      "type": "object",
+      "required": [
+        "firstName"
+      ],
+      "properties": {
+        "firstName": {
+          "type": "string"
+        }
+      }
+    },
+    "intro": {
+      "type": "string",
+      "maxLength": 700,
+      "description": "Two to four sentences. Must mention any disconnected or failed source."
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "slack",
+              "gmail",
+              "calendar",
+              "drive",
+              "github",
+              "figma",
+              "zoom"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "live",
+              "sample",
+              "partial",
+              "disconnected",
+              "error"
+            ],
+            "description": "partial = connected but the connector can't provide everything the brief needs (say why in detail)."
+          },
+          "detail": {
+            "type": "string",
+            "description": "What was scanned, or why it failed."
+          }
+        }
+      }
+    },
+    "push": {
+      "type": "object",
+      "required": [
+        "kind",
+        "title",
+        "why",
+        "source",
+        "draft",
+        "draftNote"
+      ],
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/kind"
+        },
+        "title": {
+          "type": "string"
+        },
+        "why": {
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "relatedSources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/source"
+          }
+        },
+        "draft": {
+          "type": "string",
+          "description": "Plain text the user can copy. Never sent automatically."
+        },
+        "draftNote": {
+          "type": "string",
+          "description": "Which sources the draft was built from."
+        }
+      }
+    },
+    "todos": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "due",
+          "why",
+          "source"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/$defs/kind"
+          },
+          "title": {
+            "type": "string"
+          },
+          "due": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string",
+            "description": "Required when kind is commitment: a verbatim quote from the user's own message. The backend verifies the quote exists in the source text."
+          },
+          "source": {
+            "$ref": "#/$defs/source"
+          }
+        },
+        "if": {
+          "properties": {
+            "kind": {
+              "const": "commitment"
+            }
+          }
+        },
+        "then": {
+          "required": [
+            "evidence"
+          ]
+        }
+      }
+    },
+    "hidden": {
+      "type": "array",
+      "description": "Items deliberately left out, so the user can see the filtering.",
+      "items": {
+        "type": "object",
+        "required": [
+          "reason",
+          "text"
+        ],
+        "properties": {
+          "reason": {
+            "enum": [
+              "completed",
+              "duplicate",
+              "stale"
+            ]
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "projects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "meta",
+          "updates"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "meta": {
+            "type": "string"
+          },
+          "updates": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "service",
+                "text",
+                "when",
+                "url"
+              ],
+              "properties": {
+                "service": {
+                  "$ref": "#/$defs/service"
+                },
+                "text": {
+                  "type": "string"
+                },
+                "when": {
+                  "type": "string"
+                },
+                "url": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "updatesNotice": {
+      "type": "string",
+      "description": "Disclosure of anything missing from the updates section."
+    },
+    "meetings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "start",
+          "end",
+          "location",
+          "attendees",
+          "optional",
+          "context",
+          "prep"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "location": {
+            "type": "string"
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "optional": {
+            "type": "boolean"
+          },
+          "attending": {
+            "type": "boolean",
+            "description": "Set when the user has accepted an optional invite; it then counts against focus time."
+          },
+          "context": {
+            "type": "string"
+          },
+          "prep": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "label",
+                "url"
+              ],
+              "properties": {
+                "label": {
+                  "type": "string"
+                },
+                "url": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "kind": {
+      "enum": [
+        "commitment",
+        "suggested"
+      ],
+      "description": "commitment = the user explicitly said they would do it; suggested = the brief recommends it."
+    },
+    "service": {
+      "enum": [
+        "slack",
+        "gmail",
+        "calendar",
+        "drive",
+        "github",
+        "figma",
+        "zoom"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "service",
+        "label",
+        "url"
+      ],
+      "properties": {
+        "service": {
+          "$ref": "#/$defs/service"
+        },
+        "label": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    }
+  }
+}
