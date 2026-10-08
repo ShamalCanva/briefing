@@ -1,0 +1,35 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "",
+  "outputDirectory": "public",
+  "rewrites": [
+    {
+      "source": "/login",
+      "destination": "/api/login"
+    },
+    {
+      "source": "/logout",
+      "destination": "/api/logout"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "x-content-type-options",
+          "value": "nosniff"
+        },
+        {
+          "key": "referrer-policy",
+          "value": "no-referrer"
+        },
+        {
+          "key": "cache-control",
+          "value": "no-store"
+        }
+      ]
+    }
+  ]
+}

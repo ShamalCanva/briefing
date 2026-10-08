@@ -1,0 +1,11 @@
+{
+  "name": "briefing",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Personal daily brief. Vercel: public/ + api/ + middleware.js. Fly: see deploy/.",
+  "dependencies": {
+    "@vercel/blob": "^1.1.1"
+  },
+  "engines": { "node": "22.x" }
+}
