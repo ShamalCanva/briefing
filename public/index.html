@@ -24,6 +24,10 @@
   --yellow-ink: #7A5A14;
   --green: #4E8A66;
   --red: #B35A4E;
+  --work: #6E2233;        /* deep burgundy: work items */
+  --work-soft: #F2E4E7;
+  --personal: #2F6B45;    /* green: personal items */
+  --personal-soft: #E2EEE5;
   --display: "Instrument Serif", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
   --body: "Hanken Grotesk", "Helvetica Neue", Arial, system-ui, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
@@ -123,6 +127,8 @@ h2 { font-size: clamp(32px, 5vw, 42px); line-height: 1.08; margin-top: 10px; }
 .pill.commit { background: var(--yellow-soft); color: var(--yellow-ink); border: 1px solid color-mix(in srgb, var(--yellow) 60%, transparent); }
 .pill.suggest { border: 1px solid var(--rule); color: var(--muted); }
 .pill.gap { background: var(--yellow-soft); color: var(--yellow-ink); }
+.pill.work { background: var(--work-soft); color: var(--work); }
+.pill.personal { background: var(--personal-soft); color: var(--personal); }
 
 /* Push forward */
 .push { margin-top: 26px; border: 1px solid var(--rule); border-radius: 3px; background: var(--card); overflow: hidden; }
@@ -261,7 +267,7 @@ footer p { margin: 0; }
     <section id="todos" aria-labelledby="todos-h">
       <div class="eyebrow"><span class="num">02 /</span> Top to-dos</div>
       <h2 id="todos-h">What people are waiting on.</h2>
-      <p class="lede"><span class="pill commit">You committed</span> marks things you said you'd do, in your own words. <span class="pill suggest">Suggested</span> marks things the brief thinks are worth doing. Completed and duplicate items are left out and listed below.</p>
+      <p class="lede"><span class="pill commit">You committed</span> marks things you said you'd do, in your own words. <span class="pill suggest">Suggested</span> marks things the brief thinks are worth doing. <span class="pill work">Work</span> and <span class="pill personal">Personal</span> say which life it belongs to. Completed and duplicate items are left out and listed below.</p>
       <ul class="todo-list" id="todo-list"></ul>
       <div class="todo-summary"><span id="todo-count"></span><span>Ticks are saved on this device only.</span></div>
       <details class="hidden-items" id="hidden-items"></details>
@@ -344,8 +350,8 @@ const SAMPLE = {
       source: { service: 'calendar', label: 'Research readout · 11:00', url: 'https://calendar.google.com/calendar/u/0/r/day/2026/10/8' } },
     { id: 't4', kind: 'suggested', title: 'Answer the two open comments on "Quarterly planning – draft"', due: 'This week', why: 'Marcus and Aisha left questions 2 days ago; the doc is due to leadership on Monday.',
       source: { service: 'drive', label: 'Quarterly planning – draft (Google Doc)', url: 'https://docs.google.com/document/d/sample-quarterly-planning' } },
-    { id: 't5', kind: 'commitment', title: 'Send the vendor invoice to Finance', due: 'Friday', why: 'Finance\'s cut-off for this month is Friday 15:00.',
-      evidence: '"I\'ll forward the invoice by Friday."', source: { service: 'gmail', label: 'Thread: "Re: Design tooling invoice"', url: 'https://mail.google.com/mail/u/0/#inbox/sample-thread-2' } }
+    { id: 't5', kind: 'commitment', scope: 'personal', title: 'Send the dentist invoice to the health fund', due: 'Friday', why: 'Claims close 30 days after the appointment, which is this Friday.',
+      evidence: '"I\'ll forward the invoice by Friday."', source: { service: 'gmail', label: 'Thread: "Re: Invoice for 2 Oct appointment"', url: 'https://mail.google.com/mail/u/0/#inbox/sample-thread-2' } }
   ],
   hidden: [
     { reason: 'completed', text: '"Share the research deck" — you posted it in #design-research at 17:42 yesterday.' },
@@ -411,6 +417,8 @@ function storage(key, val) {
 let toastTimer;
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600); }
 
+const scopePill = (scope) => `<span class="pill ${scope === 'personal' ? 'personal' : 'work'}">${scope === 'personal' ? 'Personal' : 'Work'}</span>`;
+
 function srcLink(src) {
   if (!src) return '';
   return `<a class="srclink" href="${esc(src.url)}" target="_blank" rel="noopener"><span class="mono">${esc(SERVICE_LABEL[src.service] || src.service)}</span>${esc(src.label)}</a>`;
@@ -457,7 +465,7 @@ function renderPush(p) {
   $('#push-lede').textContent = p.kind === 'commitment' ? "Chosen because it protects something you said you'd do. Nothing is sent until you do it yourself." : "Chosen because it unblocks the most people today. It's a suggestion, not something you promised. Nothing is sent until you do it yourself.";
   $('#push-card').innerHTML = `
     <div class="push-head">
-      <div class="push-meta"><span class="pill ${p.kind === 'commitment' ? 'commit' : 'suggest'}">${p.kind === 'commitment' ? 'You committed' : 'Suggested'}</span>${srcLink(p.source)}</div>
+      <div class="push-meta">${scopePill(p.scope)}<span class="pill ${p.kind === 'commitment' ? 'commit' : 'suggest'}">${p.kind === 'commitment' ? 'You committed' : 'Suggested'}</span>${srcLink(p.source)}</div>
       <h3>${esc(p.title)}</h3>
       <p class="push-why">${esc(p.why)}</p>
       <div class="push-meta">${(p.relatedSources || []).map(srcLink).join('')}</div>
@@ -488,7 +496,7 @@ function renderTodos(b) {
       <input type="checkbox" id="todo-${esc(t.id)}" ${done.has(t.id) ? 'checked' : ''} aria-label="Mark done: ${esc(t.title)}">
       <div class="todo-body">
         <label class="todo-title" for="todo-${esc(t.id)}">${esc(t.title)}</label>
-        <div class="todo-meta"><span class="pill ${t.kind === 'commitment' ? 'commit' : 'suggest'}">${t.kind === 'commitment' ? 'You committed' : 'Suggested'}</span><span>Due ${esc(t.due)}</span>${srcLink(t.source)}</div>
+        <div class="todo-meta">${scopePill(t.scope)}<span class="pill ${t.kind === 'commitment' ? 'commit' : 'suggest'}">${t.kind === 'commitment' ? 'You committed' : 'Suggested'}</span><span>Due ${esc(t.due)}</span>${srcLink(t.source)}</div>
         ${t.evidence ? `<p class="evidence">${esc(t.evidence)}</p>` : ''}
         <p class="todo-why">${esc(t.why)}</p>
       </div>
@@ -518,7 +526,7 @@ function renderTodos(b) {
 function renderUpdates(b) {
   $('#projects').innerHTML = b.projects.map(p => `
     <article class="project">
-      <h3>${esc(p.name)} <span>${esc(p.meta)}</span></h3>
+      <h3>${esc(p.name)} <span>${esc(p.meta)}</span>${p.scope === 'personal' ? scopePill('personal') : ''}</h3>
       <ul class="updates">${p.updates.map(u => `
         <li class="update">
           <div class="svc" title="${esc(SERVICE_LABEL[u.service] || u.service)}">${esc(SERVICE_MONO[u.service] || '··')}</div>
