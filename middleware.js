@@ -2,7 +2,7 @@
 // except the login page, the health check, and the POST ingest (which checks its own secret).
 import { isAuthed } from './lib/auth.js';
 
-export const config = { matcher: ['/((?!_vercel|favicon.ico).*)'] };
+export const config = { matcher: ['/((?!_vercel|favicon.ico|favicon.png|apple-touch-icon.png).*)'] };
 
 export default async function middleware(req) {
   const url = new URL(req.url);
